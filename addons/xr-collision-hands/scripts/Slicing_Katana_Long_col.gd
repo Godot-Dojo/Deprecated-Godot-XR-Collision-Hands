@@ -1,4 +1,4 @@
-## ADD THIS FUNCTION TO DOJO KATANAS TO MAKE THEM WORK ##
+extends XRToolsPickable
 
 func get_collider_dict():
 	var pickup_center = find_node("PickupCenter")
