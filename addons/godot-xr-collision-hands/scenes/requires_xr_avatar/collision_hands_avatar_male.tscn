@@ -17,7 +17,6 @@
 [ext_resource path="res://addons/godot-xr-avatar/materials/sybot_mat.tres" type="Material" id=15]
 [ext_resource path="res://addons/godot-xr-collision-hands/scenes/lw_avatar_collision_hands.tscn" type="PackedScene" id=16]
 
-
 [sub_resource type="SpatialMaterial" id=1]
 vertex_color_use_as_albedo = true
 
@@ -316,21 +315,11 @@ surfaces/0 = {
 "vertex_count": 89
 }
 
-[node name="avatar_male" type="Spatial"]
+[node name="avatar_player" type="Spatial"]
 
 [node name="FPController" parent="." instance=ExtResource( 6 )]
 
-[node name="left_col_hand" parent="FPController" instance=ExtResource( 16 )]
-controller_path = NodePath("../LeftHandController")
-visual_hand_path = NodePath("../LeftHandController/LeftPhysicsHand")
-pickup_path = NodePath("../LeftHandController/Function_Pickup")
-
-[node name="right_col_hand" parent="FPController" instance=ExtResource( 16 )]
-controller_path = NodePath("../RightHandController")
-visual_hand_path = NodePath("../RightHandController/RightPhysicsHand")
-pickup_path = NodePath("../RightHandController/Function_Pickup")
-
-[node name="ARVRCamera" parent="FPController" index="3"]
+[node name="ARVRCamera" parent="FPController" index="1"]
 far = 1000.0
 
 [node name="vr_common_shader_cache" parent="FPController/ARVRCamera" index="0" instance=ExtResource( 9 )]
@@ -342,6 +331,7 @@ strafe = true
 [node name="LeftPhysicsHand" parent="FPController/LeftHandController" index="1" instance=ExtResource( 5 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, -0.05, 0.15 )
 collision_layer = 655360
+margin = 0.004
 
 [node name="BoneRoot" parent="FPController/LeftHandController/LeftPhysicsHand/LeftHand/Armature_Left/Skeleton" index="1"]
 transform = Transform( 1, 0, 1.51496e-08, 1.51445e-08, -0.025905, -0.999665, 3.92449e-10, 0.999664, -0.025905, 0, 0.000360775, -0.0235019 )
@@ -414,6 +404,7 @@ smooth_rotation = true
 [node name="RightPhysicsHand" parent="FPController/RightHandController" index="2" instance=ExtResource( 10 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, -0.05, 0.15 )
 collision_layer = 655360
+margin = 0.004
 
 [node name="Function_Jump_movement" parent="FPController/RightHandController" index="3" instance=ExtResource( 7 )]
 jump_button_id = 7
@@ -421,6 +412,16 @@ jump_button_id = 7
 [node name="Function_Crouch_movement" parent="FPController/RightHandController" index="4" instance=ExtResource( 3 )]
 
 [node name="Function_Pickup" parent="FPController/RightHandController" index="5" instance=ExtResource( 2 )]
+
+[node name="left_col_hand" parent="FPController" instance=ExtResource( 16 )]
+controller_path = NodePath("../LeftHandController")
+visual_hand_path = NodePath("../LeftHandController/LeftPhysicsHand")
+pickup_path = NodePath("../LeftHandController/Function_Pickup")
+
+[node name="right_col_hand" parent="FPController" instance=ExtResource( 16 )]
+controller_path = NodePath("../RightHandController")
+visual_hand_path = NodePath("../RightHandController/RightPhysicsHand")
+pickup_path = NodePath("../RightHandController/Function_Pickup")
 
 [node name="PlayerBody" parent="FPController" instance=ExtResource( 11 )]
 
