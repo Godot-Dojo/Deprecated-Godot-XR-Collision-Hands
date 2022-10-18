@@ -1,0 +1,150 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="GDScript" id=2]
+script/source = "extends KinematicBody
+
+#
+# Adds collision capabilities to open_xr_avater hands and held objects
+#
+# REQUIRES SETUP:
+# 1) Parent must be ARVROrigin (NOT THE ARVRControllers!)
+# 2) All export NodePaths must be set
+# 3) PhysicsHand and PickupFunction are expected to be children of the controller
+# 4) Held objects may have a get_collider_dict() function to inform
+#    THIS of what colliders it has and their orientation. Dictionary format:
+#    collision_dict = {CollisionShape : Transform, CollisionShape : Transform, ...}
+# 5) Make note of collision layers, do not let the hands collide with whatever
+#    body system you are using
+#
+# THIS addition acts a KinematicBody that \"chases\" the controller THIS is assigned
+# to. THIS has a simple CollisionShape to simulate the empty hand and will copy
+# the CollisionShapes of held objects and add them to THIS as children; then it
+# will delete the copied CollisionShapes on drop.
+
+export (NodePath) var controller_path = null 
+# On Godot-XR-Dojo Avatar, this will be the \"PhysicsHand\"
+export (NodePath) var visual_hand_path = null #Should be child of ARVRController
+export (NodePath) var pickup_path = null #Should be child of ARVRController
+
+export var max_distance : float = 0.2 #Distance before dropping when stuck
+export var slide_speed : float = 60.0
+
+onready var controller = get_node(controller_path)
+onready var visual_hand = get_node(visual_hand_path)
+onready var pickup = get_node(pickup_path)
+onready var hand_shape : CollisionShape = $HandShape
+onready var hr_transform : RemoteTransform = $HandRemoteTransform
+onready var pr_transform : RemoteTransform = $PickupRemoteTransform
+onready var xr_origin : ARVROrigin = $\"..\"
+
+var collider_list : Array = [] # List of colliders added by grabbed objects
+var held_body : PhysicsBody
+const controller_offset : float = 0.03 # Collision offset for handedness
+
+func _ready():
+	# Connects Remote Transforms to targets
+	hr_transform.set_transform(visual_hand.get_transform())
+	hr_transform.set_remote_node(\"../\" + visual_hand_path)
+	pr_transform.set_transform(pickup.get_transform())
+	pr_transform.set_remote_node(\"../\" + pickup_path)
+	
+	# Connects signals for grabbing and dropping from pickup function
+	pickup.connect(\"has_picked_up\", self, \"add_colliders\")
+	pickup.connect(\"has_dropped\", self, \"remove_colliders\")
+	
+	# Left or Right Hand
+	if controller.controller_id == 1:
+		hand_shape.translate(Vector3(-controller_offset, 0, 0))
+	elif controller.controller_id == 2:
+		hand_shape.translate(Vector3(controller_offset, 0, 0))
+
+func _physics_process(delta):
+	move_to(controller)
+	check_for_drop()
+
+# With collision, move self toward target
+func move_to(target : Node) -> void:
+	var t_pos : Vector3 = target.global_transform.origin #Target Position
+	var s_pos : Vector3 = self.global_transform.origin #Self Position
+	
+	var dir : Vector3 = t_pos - s_pos #Move Direction
+	
+	move_and_slide(dir * slide_speed)
+	self.set_rotation(controller.rotation)
+
+# Checks if held object is too far to be held and drops it if true
+func check_for_drop() -> void:
+	var c_pos = controller.global_transform.origin #Controller Position
+	var s_pos = self.global_transform.origin #Self Position
+	
+	var face_pos = self.get_parent().global_transform.origin
+	var s_dist = s_pos.distance_to(face_pos)
+	var c_dist = c_pos.distance_to(face_pos)
+	
+	if s_dist > c_dist + max_distance: #If object too far from face
+		pickup.drop_object()
+		remove_colliders()
+		self.transform = controller.transform
+
+# Requests a dictionary of CollisionShapes with Transforms from Spatial object
+# for holding; else finds all CollisionShape children
+# Format: {CollisionShape : Transform, CollisionShape : Transform,...}
+func add_colliders(object : Spatial) -> bool:
+	if is_instance_valid(object) and object.has_method(\"get_collider_dict\"):
+		var col_dict : Dictionary = object.get_collider_dict()
+		for key in col_dict.keys():
+			var dupe_col = key.duplicate()
+			dupe_col.transform = col_dict[key]
+			collider_list.append(dupe_col)
+			self.add_child(dupe_col)
+		held_body = object
+		self.add_collision_exception_with(held_body)
+		return true
+	elif is_instance_valid(object):
+		var found_collider = false
+		var pickup_center = object.find_node(\"PickupCenter\")
+		if not is_instance_valid(pickup_center):
+			pickup_center = Spatial.new()
+		for child in object.get_children():
+			if child is CollisionShape:
+				found_collider = true
+				var dupe_col = child.duplicate()
+				dupe_col.transform.origin = pickup_center.transform.origin + child.transform.origin
+				collider_list.append(dupe_col)
+				self.add_child(dupe_col)
+		if not found_collider:
+			print_debug(\"Grabbed object contains no available colliders\")
+		return found_collider
+	else:
+		print_debug(\"Attempting to grab null object\")
+		return false
+
+# Delete colliders used for held object
+func remove_colliders() -> void:
+	for col in collider_list:
+		col.queue_free()
+	collider_list = []
+	
+	if is_instance_valid(held_body):
+		self.remove_collision_exception_with(held_body)
+"
+
+[sub_resource type="CylinderShape" id=1]
+radius = 0.04
+height = 0.2
+
+[node name="light_xr_collision_hands" type="KinematicBody"]
+collision_layer = 268435456
+collision_mask = 268435456
+script = SubResource( 2 )
+controller_path = null
+visual_hand_path = null
+pickup_path = null
+
+[node name="HandShape" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.173648, -0.984808, 0, 0.984808, 0.173648, 0, -0.07, 0.07 )
+shape = SubResource( 1 )
+
+[node name="HandRemoteTransform" type="RemoteTransform" parent="."]
+
+[node name="PickupRemoteTransform" type="RemoteTransform" parent="."]
