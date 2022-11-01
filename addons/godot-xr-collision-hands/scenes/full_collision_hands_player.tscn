@@ -1,0 +1,61 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://addons/godot-xr-collision-hands/scenes/full_avatar_collision_hands.tscn" type="PackedScene" id=1]
+[ext_resource path="res://addons/godot-xr-collision-hands/scenes/lw_avatar_collision_hands.tscn" type="PackedScene" id=4]
+[ext_resource path="res://addons/godot-xr-tools/assets/PlayerBody.tscn" type="PackedScene" id=5]
+[ext_resource path="res://addons/godot-xr-tools/functions/Function_Pickup.tscn" type="PackedScene" id=7]
+[ext_resource path="res://addons/godot-openxr/scenes/first_person_controller_vr.tscn" type="PackedScene" id=8]
+[ext_resource path="res://addons/godot-xr-tools/functions/Function_Direct_movement.tscn" type="PackedScene" id=9]
+[ext_resource path="res://addons/godot-xr-tools/functions/Function_Turn_movement.tscn" type="PackedScene" id=10]
+[ext_resource path="res://addons/godot-xr-tools/assets/RightPhysicsHand.tscn" type="PackedScene" id=11]
+[ext_resource path="res://addons/godot-xr-tools/functions/Function_Jump_movement.tscn" type="PackedScene" id=12]
+[ext_resource path="res://addons/godot-xr-tools/functions/Function_Crouch_movement.tscn" type="PackedScene" id=13]
+[ext_resource path="res://addons/godot-xr-tools/misc/VR_Common_Shader_Cache.tscn" type="PackedScene" id=14]
+
+[node name="collision_hands_player" type="Spatial"]
+
+[node name="FPController" parent="." instance=ExtResource( 8 )]
+
+[node name="ARVRCamera" parent="FPController" index="1"]
+far = 1000.0
+
+[node name="vr_common_shader_cache" parent="FPController/ARVRCamera" index="0" instance=ExtResource( 14 )]
+
+[node name="LeftHandController" parent="FPController" index="2"]
+visible = true
+
+[node name="Function_Direct_movement" parent="FPController/LeftHandController" index="0" instance=ExtResource( 9 )]
+max_speed = 2.0
+strafe = true
+
+[node name="RightHandController" parent="FPController" index="3"]
+visible = true
+
+[node name="Function_Direct_movement" parent="FPController/RightHandController" index="0" instance=ExtResource( 9 )]
+max_speed = 2.0
+
+[node name="Function_Turn_movement" parent="FPController/RightHandController" index="1" instance=ExtResource( 10 )]
+smooth_rotation = true
+
+[node name="RightPhysicsHand" parent="FPController/RightHandController" index="2" instance=ExtResource( 11 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, -0.05, 0.15 )
+collision_layer = 655360
+
+[node name="Function_Jump_movement" parent="FPController/RightHandController" index="3" instance=ExtResource( 12 )]
+jump_button_id = 7
+
+[node name="Function_Crouch_movement" parent="FPController/RightHandController" index="4" instance=ExtResource( 13 )]
+
+[node name="Function_Pickup" parent="FPController/RightHandController" index="5" instance=ExtResource( 7 )]
+
+[node name="left_full_xr_collision_hands" parent="FPController" instance=ExtResource( 1 )]
+
+[node name="right_col_hand" parent="FPController" instance=ExtResource( 4 )]
+controller_path = NodePath("../RightHandController")
+visual_hand_path = NodePath("../RightHandController/RightPhysicsHand")
+pickup_path = NodePath("../RightHandController/Function_Pickup")
+
+[node name="PlayerBody" parent="FPController" instance=ExtResource( 5 )]
+
+[editable path="FPController"]
+[editable path="FPController/left_full_xr_collision_hands"]

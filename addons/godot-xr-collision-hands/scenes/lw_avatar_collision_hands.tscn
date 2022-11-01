@@ -134,12 +134,9 @@ radius = 0.04
 height = 0.2
 
 [node name="light_xr_collision_hands" type="KinematicBody"]
-collision_layer = 268435456
-collision_mask = 268435456
+collision_layer = 268435457
+collision_mask = 268435457
 script = SubResource( 2 )
-controller_path = null
-visual_hand_path = null
-pickup_path = null
 
 [node name="HandShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, 0.173648, -0.984808, 0, 0.984808, 0.173648, 0, -0.07, 0.07 )

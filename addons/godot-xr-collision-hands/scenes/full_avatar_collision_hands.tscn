@@ -1,0 +1,157 @@
+[gd_scene load_steps=8 format=2]
+
+[sub_resource type="GDScript" id=13]
+script/source = "extends KinematicBody
+
+
+# Declare member variables here. Examples:
+# var a = 2
+# var b = \"text\"
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	if Input.is_key_pressed(KEY_SPACE):
+		activate_motors()
+
+func activate_motors():
+	var joint_list : Array = []
+	for child in get_children():
+		if child is HingeJoint:
+			joint_list.append(child)
+			
+	for joint in joint_list:
+		joint.set_flag(HingeJoint.FLAG_ENABLE_MOTOR, true)
+			
+"
+
+[sub_resource type="BoxShape" id=7]
+extents = Vector3( 0.04, 0.02, 0.03 )
+
+[sub_resource type="BoxShape" id=8]
+extents = Vector3( 0.015, 0.02, 0.03 )
+
+[sub_resource type="BoxShape" id=9]
+extents = Vector3( 0.013, 0.015, 0.035 )
+
+[sub_resource type="BoxShape" id=10]
+extents = Vector3( 0.013, 0.013, 0.03 )
+
+[sub_resource type="BoxShape" id=11]
+extents = Vector3( 0.011, 0.01, 0.025 )
+
+[sub_resource type="GDScript" id=12]
+script/source = "extends HingeJoint
+
+
+# Declare member variables here. Examples:
+# var a = 2
+# var b = \"text\"
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	print(get_flag(HingeJoint.FLAG_ENABLE_MOTOR))
+"
+
+[node name="full_xr_collision_hands" type="KinematicBody"]
+collision_layer = 268435456
+collision_mask = 268435456
+script = SubResource( 13 )
+
+[node name="PalmShape" type="CollisionShape" parent="."]
+transform = Transform( -4.37114e-08, 0.984808, 0.173648, 0, 0.173648, -0.984808, -1, -4.30473e-08, -7.5904e-09, -0.012, -0.07, 0.021 )
+shape = SubResource( 7 )
+
+[node name="Metacarpal" type="RigidBody" parent="."]
+transform = Transform( -4.37114e-08, 0.984808, 0.173648, 0, 0.173648, -0.984808, -1, -4.30473e-08, -7.5904e-09, -0.012, -0.07, 0.075 )
+collision_layer = 268435456
+collision_mask = 268435456
+gravity_scale = 0.0
+
+[node name="MetacarpalShape" type="CollisionShape" parent="Metacarpal"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shape = SubResource( 8 )
+
+[node name="Proximal" type="RigidBody" parent="."]
+collision_layer = 268435456
+collision_mask = 268435456
+gravity_scale = 0.0
+
+[node name="ProximalShape" type="CollisionShape" parent="Proximal"]
+transform = Transform( -4.37114e-08, 0.984808, 0.173648, 0, 0.173648, -0.984808, -1, -4.30473e-08, -7.5904e-09, -0.0142745, -0.07, 0.103372 )
+shape = SubResource( 9 )
+
+[node name="Middle" type="RigidBody" parent="."]
+transform = Transform( -4.37114e-08, 0.984808, 0.173648, 0, 0.173648, -0.984808, -1, -4.30473e-08, -7.5904e-09, -0.016, -0.07, 0.13 )
+collision_layer = 268435456
+collision_mask = 268435456
+gravity_scale = 0.0
+
+[node name="MiddleShape" type="CollisionShape" parent="Middle"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+shape = SubResource( 10 )
+
+[node name="Distal" type="RigidBody" parent="."]
+transform = Transform( -4.37114e-08, 0.984808, 0.173648, 0, 0.173648, -0.984808, -1, -4.30473e-08, -7.5904e-09, -0.017, -0.07, 0.153 )
+collision_layer = 268435456
+collision_mask = 268435456
+gravity_scale = 0.0
+
+[node name="DistalShape" type="CollisionShape" parent="Distal"]
+transform = Transform( 1, 0, -8.88178e-16, 0, 1, 3.26746e-16, 0, 3.26746e-16, 1, 0, 0, 0 )
+shape = SubResource( 11 )
+
+[node name="PalmMetacarpal" type="HingeJoint" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.0109321, -0.0867538, 0.0352943 )
+nodes/node_a = NodePath("..")
+nodes/node_b = NodePath("../Metacarpal")
+angular_limit/enable = true
+angular_limit/upper = -20.0
+angular_limit/lower = -30.0
+motor/target_velocity = -1.0
+motor/max_impulse = 2.0
+script = SubResource( 12 )
+
+[node name="MetacarpalProximal" type="HingeJoint" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.0109321, -0.0867538, 0.0720089 )
+nodes/node_a = NodePath("../Metacarpal")
+nodes/node_b = NodePath("../Proximal")
+angular_limit/enable = true
+angular_limit/upper = 10.0
+angular_limit/lower = -80.0
+motor/target_velocity = -1.0
+motor/max_impulse = 2.0
+
+[node name="ProximalMiddle" type="HingeJoint" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.0109321, -0.0867538, 0.104808 )
+nodes/node_a = NodePath("../Proximal")
+nodes/node_b = NodePath("../Middle")
+angular_limit/enable = true
+angular_limit/upper = 87.0
+angular_limit/lower = -48.0
+motor/target_velocity = -1.0
+motor/max_impulse = 2.0
+
+[node name="MiddleDistal" type="HingeJoint" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.0109321, -0.0867538, 0.137717 )
+nodes/node_a = NodePath("../Middle")
+nodes/node_b = NodePath("../Distal")
+angular_limit/enable = true
+angular_limit/upper = 30.0
+angular_limit/lower = -60.0
+motor/target_velocity = -1.0
+motor/max_impulse = 2.0
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( -4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -0.473, -0.1, 0.062 )
